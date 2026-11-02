@@ -4,7 +4,7 @@
 
 OSMAN Godot Loader is a reusable Android game launcher, similar in spirit to a LÖVE loader. Install the Loader APK **once**, then import an exported **Godot 4.6 `.pck`** game pack and launch it directly. The player and the game content are distributed separately.
 
-**Status:** Working prototype / **Android debug APK**, not a Google Play release. [GitHub Actions has successfully built the Loader with Android file-manager integration](https://github.com/TheOsmanYILDIRIM/TAMU-K-K/actions/runs/41416339859). Individual phone models, third-party game packs, and per-game save isolation are not certified by that CI result.
+**Status:** Working prototype / **Android debug APK**, not a Google Play release. [GitHub Actions has successfully built the Loader with Android file-manager integration](https://github.com/TheOsmanYILDIRIM/TAMU-K-K/actions/runs/41416339859). Individual phone models, third-party game packs, and per-game save isolation is not implemented or certified by that CI result.
 
 ## Table of contents
 
@@ -190,11 +190,28 @@ Local builds need a matching toolchain: **JDK 17, Android SDK 35, NDK 28.1.13356
 - **Save data:** Two unrelated games using the same Godot `config/name` may share a `user://` save path. No guaranteed separate save profiles or safe migration feature exists. Never clear Loader app data without backups.
 - The Android manifest declares the **INTERNET** permission, but the Loader UI does not implement a remote game catalog, auto-updater, or telemetry service. Each imported game may have its own network behavior.
 
+## Draft GitHub Releases
+
+The existing [Android workflow](.github/workflows/android-loader.yml) accepts an
+optional `release_tag` when run manually. Leaving it empty runs CI only.
+For a tag such as `v0.1.0-rc1`, successful build/tests create a
+**draft prerelease** containing the debug APK and `SHA256SUMS.txt`.
+Existing tags/releases are never overwritten. Inspect the assets and
+licensing before manually publishing the draft. This is not a production
+signed APK.
+
+**Save isolation warning:** Godot 4.6's
+`application/config/use_custom_user_dir` is not effective on Android.
+The current Loader does not reliably isolate `user://` for different
+games and will not claim otherwise. Until an Android-native namespace
+adapter and migration tests are implemented, do not switch unrelated
+games that share a project identity without backups.
+
 ## Contributing and licensing
 
 Contributions and bug reports are welcome via the [repository](https://github.com/TheOsmanYILDIRIM/Godot-Loader). Include the affected pack/engine versions, precise reproduction steps, device model, screenshots/logs when relevant, and the GitHub Actions run or commit. Keep changes scoped to `` and the existing Loader workflow where possible; do not alter the TAMU game or users' saved data as part of an unrelated Loader fix.
 
-The underlying [Godot Engine uses the MIT License](https://github.com/godotengine/godot/blob/4.6-stable/LICENSE.txt). **That does not automatically license this repository's Loader code or game assets.** There is currently no separate repository/Loader `LICENSE` file; obtain maintainer permission before redistributing, relicensing or reusing this project's code/content. Do not bundle third-party artwork or other assets without checking their licenses.
+The underlying [Godot Engine uses the MIT License](https://github.com/godotengine/godot/blob/4.6-stable/LICENSE.txt). **That does not automatically license this repository's Loader code or game assets.** The loader source in this independent repository is distributed under the [MIT License](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md); bundled Godot/Android dependencies retain their upstream licenses. TAMU game assets are not included. Do not bundle third-party artwork or other assets without checking their licenses.
 
 ---
 
