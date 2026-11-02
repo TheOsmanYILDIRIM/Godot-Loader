@@ -37,6 +37,40 @@ jobs:
           SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           test -d "$SDK"
           "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" "platforms;android-35" "build-tools;35.0.1" "ndk;28.1.13356709"
+      - name: Patch Godot Android user data namespace per imported pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('.godot-engine/platform/android/java/lib/src/main/java/org/godotengine/godot/GodotIO.java')
+          original=path.read_text()
+          needle='''	public String getDataDir() {
+		return getContext().getFilesDir().getAbsolutePath();
+	}'''
+          replacement='''	public String getDataDir() {
+		Context context = getContext();
+		if (context instanceof Activity) {
+			String pack = ((Activity)context).getIntent().getStringExtra("com.osman.godotloader.PACK");
+			if (pack != null) {
+				if (!pack.matches("[0-9a-f]{64}\\\\.pck")) {
+					throw new IllegalStateException("Invalid external pack identity");
+				}
+				File profile = new File(context.getFilesDir(), "profiles/" + pack.substring(0, 64));
+				if (!profile.isDirectory() && !profile.mkdirs()) {
+					throw new IllegalStateException("Unable to create per-pack save directory");
+				}
+				return profile.getAbsolutePath();
+			}
+		}
+		return context.getFilesDir().getAbsolutePath();
+	}'''
+          assert original.count(needle)==1,'Godot 4.6 source changed, refuse unsafe patch'
+          modified=original.replace(needle,replacement)
+          path.write_text(modified)
+          assert modified.count('"profiles/"')==1
+          print('OSMAN_ANDROID_PROFILE_PATCH_OK')
+          PY
       - name: Compile Android ARM64 with external main-pack overrides
         run: |
           set -euo pipefail
@@ -48,6 +82,7 @@ jobs:
           cd .godot-engine/platform/android/java
           ./gradlew :lib:assembleTemplateDebug -x :lib:compileGodotNativeLibsTemplateDebugArm64 --no-daemon
           test -s lib/build/outputs/aar/godot-lib.template_debug.aar
+          grep -Fq 'profiles/' lib/src/main/java/org/godotengine/godot/GodotIO.java
           mkdir -p "$GITHUB_WORKSPACE/android/app/libs"
           cp lib/build/outputs/aar/godot-lib.template_debug.aar "$GITHUB_WORKSPACE/android/app/libs/"
           unzip -l "$GITHUB_WORKSPACE/android/app/libs/godot-lib.template_debug.aar" | grep -q 'jni/arm64-v8a/libgodot_android.so'

@@ -104,7 +104,7 @@ For a working example, see the existing [TAMU PCK export workflow](https://githu
 | Game update downloads | Manual import; no built-in network downloader |
 | Android package | Debug APK artifact; no signed production/store release |
 | Godot C# / platform-specific native extensions | Not generally verified |
-| Independent save directory per imported game | **Not guaranteed** |
+| Independent save directory per imported PCK | **Implemented through a custom GodotIO patch; device behavior still needs verification** |
 | Real-device and performance certification | No broad device/FPS certification from CI |
 
 **This tool is a game runner, not an editor, APK builder, resource compiler, or secure app sandbox.**
@@ -187,7 +187,7 @@ Local builds need a matching toolchain: **JDK 17, Android SDK 35, NDK 28.1.13356
 - `GDPC` header checking and a SHA-256-derived storage filename detect obvious file mismatch and select a private path, but **do not authenticate the publisher** or guarantee the full pack is trustworthy.
 - Imported `content://` or local `file://` streams are copied to an app-private `filesDir/packs/` path. The Loader does not execute directly from the file manager's URI, request broad storage permissions, or automatically launch a pack selected through its own picker.
 - The file-manager route asks for confirmation before running imported code. The app currently retains old packs and uses one active selection.
-- **Save data:** Two unrelated games using the same Godot `config/name` may share a `user://` save path. No guaranteed separate save profiles or safe migration feature exists. Never clear Loader app data without backups.
+- **Save data:** The custom Godot Android AAR selects a private `user://` profile from the PCK SHA-256. Profiles are separated per pack; newer exports do **not** automatically inherit older saves. Device validation and safe migration are still open. Never clear Loader app data without backups.
 - The Android manifest declares the **INTERNET** permission, but the Loader UI does not implement a remote game catalog, auto-updater, or telemetry service. Each imported game may have its own network behavior.
 
 ## Draft GitHub Releases
@@ -202,10 +202,13 @@ signed APK.
 
 **Save isolation warning:** Godot 4.6's
 `application/config/use_custom_user_dir` is not effective on Android.
-The current Loader does not reliably isolate `user://` for different
-games and will not claim otherwise. Until an Android-native namespace
-adapter and migration tests are implemented, do not switch unrelated
-games that share a project identity without backups.
+The custom Android library now redirects Godot's data directory to
+`filesDir/profiles/<PCK SHA-256>/` for imported packs. Different PCK bytes
+therefore use different directories. This is **per-pack isolation** (not
+yet stable per-game identity): exporting an updated PCK changes its SHA-256
+and starts with a different save profile. Existing profiles remain on disk;
+automatic migration is **not** implemented. Test Android save/reopen before
+relying on this for long-lived progress.
 
 ## Contributing and licensing
 
