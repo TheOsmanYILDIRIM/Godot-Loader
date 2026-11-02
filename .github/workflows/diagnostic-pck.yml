@@ -55,6 +55,22 @@ jobs:
           # v2 MUST fail without migration. Passing unexpectedly would mean a false positive.
           grep -q '"status":"FAIL"' dist/v2-smoke.log
           echo OSMAN_DIAGNOSTIC_NEGATIVE_CONTROL_OK
+          # Positive control: simulate explicit user-approved save copy (not the Android UI).
+          SAVE_REL=godot/app_userdata/GodotLoaderDiagnostics
+          mkdir -p "/tmp/osman-test-three/home/$SAVE_REL" /tmp/osman-test-three
+          cp "/tmp/osman-test-one/home/$SAVE_REL/osman_loader_diag_save.json" "/tmp/osman-test-three/home/$SAVE_REL/"
+          (cd /tmp/osman-test-three && XDG_DATA_HOME=/tmp/osman-test-three/home godot --headless --main-pack "$GITHUB_WORKSPACE/dist/Godot-Loader-Test-v2.pck" -- --smoke | tee "$GITHUB_WORKSPACE/dist/v2-with-migration-smoke.log")
+          python3 - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('dist')
+          log=(root/'v2-with-migration-smoke.log').read_text()
+          results=[json.loads(line.split('OSMAN_LOADER_TEST_REPORT=',1)[1]) for line in log.splitlines() if 'OSMAN_LOADER_TEST_REPORT=' in line]
+          assert results,'missing diagnostic report'
+          tests=results[-1]['tests']
+          assert len(tests)==5 and all(t['status']=='PASS' for t in tests),tests
+          assert {t['id'] for t in tests} >= {'migration_from_v1','save_read'}
+          print('OSMAN_DIAGNOSTIC_POSITIVE_MIGRATION_OK',len(tests))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: Godot-Loader-Diagnostic-PCK
