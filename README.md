@@ -219,3 +219,8 @@ The underlying [Godot Engine uses the MIT License](https://github.com/godotengin
 ---
 
 **TAMU is the first example game, not a runtime dependency.**
+
+
+## Explicit save migration for updated PCKs
+
+Save profiles are named after the full PCK SHA-256, so new exports get separate profiles. When importing an update, the Loader can **ask** to copy the previous profile into the new, still-empty profile. Select this only if it is genuinely an update of the same game. Copying never deletes the source and refuses to overwrite an existing destination. It rejects symlinks, oversized trees (>512 MiB), excessive files and interrupted staging. No semantic save-version conversion is attempted; game-level save compatibility remains the developer's responsibility. This migration should be tested on Android before treating it as production-safe.

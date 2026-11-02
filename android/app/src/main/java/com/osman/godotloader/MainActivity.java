@@ -160,6 +160,8 @@ public final class MainActivity extends Activity {
             status.setText("Önceki PCK içe aktarma işlemi sürüyor.");
             return;
         }
+        String before = getPreferences(MODE_PRIVATE).getString("selected_pack", null);
+        getPreferences(MODE_PRIVATE).edit().putString("previous_pack_for_migration", before).apply();
         importBusy = true;
         status.setText("PCK içeri aktarılıyor…");
         pick.setEnabled(false);
@@ -178,6 +180,7 @@ public final class MainActivity extends Activity {
                         return;
                     }
                     refreshStatus();
+                    offerSaveMigration(pack);
                     if (fromFileManager) {
                         // Exported activities can be launched by other apps.
                         // Require an explicit user action before running external GDScript.
@@ -200,6 +203,47 @@ public final class MainActivity extends Activity {
                 });
             }
         });
+    }
+
+    private void offerSaveMigration(String newPack) {
+        String previous = getPreferences(MODE_PRIVATE).getString("previous_pack_for_migration", null);
+        // During import, selected_pack is already updated. Compare to prior selection
+        // captured before the import, never infer identity from PCK contents.
+        if (previous == null || previous.equals(newPack)) return;
+        try {
+            File source = SaveProfiles.profile(getFilesDir(), previous);
+            File destination = SaveProfiles.profile(getFilesDir(), newPack);
+            if (!source.isDirectory() || destination.exists()) return;
+        } catch (IOException ignored) { return; }
+        new AlertDialog.Builder(this)
+                .setTitle("Kayıtları yeni sürüme kopyala?")
+                .setMessage("YALNIZ AYNI OYUNUN güncellemesiyse seçin. Eski kayıtlar korunur; yeni sürüm uyumsuz olabilir. Bu işlem oyun açık değilken yapılmalıdır.")
+                .setPositiveButton("KOPYALA", (dialog, which) -> {
+                    pick.setEnabled(false);
+                    play.setEnabled(false);
+                    io.execute(() -> {
+                        try {
+                            SaveProfiles.copyForUpdate(getFilesDir(), previous, newPack);
+                            runOnUiThread(() -> {
+                                if (!isDestroyed()) {
+                                    status.setText("Kayıtlar kopyalandı; eski kayıtlar korundu.");
+                                    pick.setEnabled(true);
+                                    play.setEnabled(true);
+                                }
+                            });
+                        } catch (Exception e) {
+                            runOnUiThread(() -> {
+                                if (!isDestroyed()) {
+                                    status.setText("Kayıt taşıma reddedildi: "+e.getMessage());
+                                    pick.setEnabled(true);
+                                    play.setEnabled(true);
+                                }
+                            });
+                        }
+                    });
+                })
+                .setNegativeButton("YENİ KAYIT", null)
+                .show();
     }
 
     private void refreshIfPackExists() {
