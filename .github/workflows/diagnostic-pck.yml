@@ -33,7 +33,7 @@ jobs:
           for VERSION in v1 v2; do
             printf '%s\n' "$VERSION" > test-game/version.txt
             godot --headless --editor --path test-game --import --quit
-            godot --headless --path test-game --export-pack Linux/X11 "dist/Godot-Loader-Test-$VERSION.pck"
+            godot --headless --path test-game --export-pack Linux/X11 "$GITHUB_WORKSPACE/dist/Godot-Loader-Test-$VERSION.pck"
             test -s "dist/Godot-Loader-Test-$VERSION.pck"
             python3 - "$VERSION" <<'PY'
           import sys, pathlib
