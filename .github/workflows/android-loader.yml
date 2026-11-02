@@ -109,6 +109,12 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/android/app/libs"
           cp lib/build/outputs/aar/godot-lib.template_debug.aar "$GITHUB_WORKSPACE/android/app/libs/"
           unzip -l "$GITHUB_WORKSPACE/android/app/libs/godot-lib.template_debug.aar" | grep -q 'jni/arm64-v8a/libgodot_android.so'
+      - name: Persist verified native AAR before Java tests
+        if: steps.engine-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: android/app/libs/godot-lib.template_debug.aar
+          key: godot-4.6-stable-arm64-external-pack-profiles-v1
       - name: Install Gradle for Loader compilation
         uses: gradle/actions/setup-gradle@v4
         with:
