@@ -46,25 +46,25 @@ jobs:
           path=Path('.godot-engine/platform/android/java/lib/src/main/java/org/godotengine/godot/GodotIO.java')
           original=path.read_text()
           needle='''	public String getDataDir() {
-		return getContext().getFilesDir().getAbsolutePath();
-	}'''
+          		return getContext().getFilesDir().getAbsolutePath();
+          	}'''
           replacement='''	public String getDataDir() {
-		Context context = getContext();
-		if (context instanceof Activity) {
-			String pack = ((Activity)context).getIntent().getStringExtra("com.osman.godotloader.PACK");
-			if (pack != null) {
-				if (!pack.matches("[0-9a-f]{64}\\\\.pck")) {
-					throw new IllegalStateException("Invalid external pack identity");
-				}
-				File profile = new File(context.getFilesDir(), "profiles/" + pack.substring(0, 64));
-				if (!profile.isDirectory() && !profile.mkdirs()) {
-					throw new IllegalStateException("Unable to create per-pack save directory");
-				}
-				return profile.getAbsolutePath();
-			}
-		}
-		return context.getFilesDir().getAbsolutePath();
-	}'''
+          		Context context = getContext();
+          		if (context instanceof Activity) {
+          			String pack = ((Activity)context).getIntent().getStringExtra("com.osman.godotloader.PACK");
+          			if (pack != null) {
+          				if (!pack.matches("[0-9a-f]{64}\\\\.pck")) {
+          					throw new IllegalStateException("Invalid external pack identity");
+          				}
+          				File profile = new File(context.getFilesDir(), "profiles/" + pack.substring(0, 64));
+          				if (!profile.isDirectory() && !profile.mkdirs()) {
+          					throw new IllegalStateException("Unable to create per-pack save directory");
+          				}
+          				return profile.getAbsolutePath();
+          			}
+          		}
+          		return context.getFilesDir().getAbsolutePath();
+          	}'''
           assert original.count(needle)==1,'Godot 4.6 source changed, refuse unsafe patch'
           modified=original.replace(needle,replacement)
           path.write_text(modified)
