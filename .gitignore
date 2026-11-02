@@ -1,0 +1,10 @@
+/.gradle/
+/android/.gradle/
+/android/app/build/
+/android/build/
+/android/app/libs/*.aar
+/dist/
+/.godot-engine/
+*.keystore
+*.jks
+*.log
