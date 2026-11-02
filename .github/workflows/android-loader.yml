@@ -20,7 +20,26 @@ jobs:
     timeout-minutes: 110
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      # Cache the *custom* Godot ARM64 AAR. Bump v1 if engine tag,
+      # disable_path_overrides or the Android user:// patch changes.
+      - name: Restore custom engine AAR
+        id: engine-cache
+        uses: actions/cache@v4
+        with:
+          path: android/app/libs/godot-lib.template_debug.aar
+          key: godot-4.6-stable-arm64-external-pack-profiles-v1
+      - name: Verify cached engine AAR
+        if: steps.engine-cache.outputs.cache-hit == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAR=android/app/libs/godot-lib.template_debug.aar
+          test -s "$AAR"
+          unzip -t "$AAR" | tail -1
+          unzip -l "$AAR" | grep -q 'jni/arm64-v8a/libgodot_android.so'
+          echo OSMAN_CUSTOM_AAR_CACHE_HIT_OK
+      - if: steps.engine-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
         with:
           repository: godotengine/godot
           ref: 4.6-stable
@@ -30,14 +49,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Godot native build prerequisites
+      - if: steps.engine-cache.outputs.cache-hit != 'true'
+        name: Install Godot native build prerequisites
         run: |
           set -euo pipefail
           python3 -m pip install --user 'scons>=4.4,<5'
           SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           test -d "$SDK"
           "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" "platforms;android-35" "build-tools;35.0.1" "ndk;28.1.13356709"
-      - name: Patch Godot Android user data namespace per imported pack
+      - if: steps.engine-cache.outputs.cache-hit != 'true'
+        name: Patch Godot Android user data namespace per imported pack
         shell: bash
         run: |
           set -euo pipefail
@@ -71,12 +92,14 @@ jobs:
           assert modified.count('"profiles/"')==1
           print('OSMAN_ANDROID_PROFILE_PATCH_OK')
           PY
-      - name: Compile Android ARM64 with external main-pack overrides
+      - if: steps.engine-cache.outputs.cache-hit != 'true'
+        name: Compile Android ARM64 with external main-pack overrides
         run: |
           set -euo pipefail
           scons -C .godot-engine -j4 platform=android target=template_debug arch=arm64 optimize=speed disable_path_overrides=no
           find .godot-engine/platform/android/java/lib/libs/debug -name libgodot_android.so -type f -print -quit | grep -q .
-      - name: Build custom Android Godot AAR
+      - if: steps.engine-cache.outputs.cache-hit != 'true'
+        name: Build custom Android Godot AAR
         run: |
           set -euo pipefail
           cd .godot-engine/platform/android/java
@@ -86,10 +109,14 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/android/app/libs"
           cp lib/build/outputs/aar/godot-lib.template_debug.aar "$GITHUB_WORKSPACE/android/app/libs/"
           unzip -l "$GITHUB_WORKSPACE/android/app/libs/godot-lib.template_debug.aar" | grep -q 'jni/arm64-v8a/libgodot_android.so'
+      - name: Install Gradle for Loader compilation
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
       - name: Compile loader and run JVM tests
         run: |
           set -euo pipefail
-          .godot-engine/platform/android/java/gradlew -p "$GITHUB_WORKSPACE/android" :app:assembleDebug :app:testDebugUnitTest --no-daemon
+          gradle -p "$GITHUB_WORKSPACE/android" :app:assembleDebug :app:testDebugUnitTest --no-daemon
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           test -s "$APK"
           unzip -t "$APK" | tail -1
