@@ -1,0 +1,62 @@
+name: Diagnostic PCK v1 and v2
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'test-game/**'
+      - '.github/workflows/diagnostic-pck.yml'
+permissions:
+  contents: read
+jobs:
+  test-pack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Godot 4.6 with export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=https://github.com/godotengine/godot-builds/releases/download/4.6-stable
+          curl -fL --retry 3 "$BASE/Godot_v4.6-stable_linux.x86_64.zip" -o /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo install /tmp/Godot_v4.6-stable_linux.x86_64 /usr/local/bin/godot
+          curl -fL --retry 3 "$BASE/Godot_v4.6-stable_export_templates.tpz" -o /tmp/templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.6.stable" /tmp/godot-tmpl dist
+          unzip -q /tmp/templates.tpz -d /tmp/godot-tmpl
+          cp /tmp/godot-tmpl/templates/* "$HOME/.local/share/godot/export_templates/4.6.stable/"
+      - name: Produce two actual Godot PCK files
+        shell: bash
+        run: |
+          set -euo pipefail
+          for VERSION in v1 v2; do
+            printf '%s\n' "$VERSION" > test-game/version.txt
+            godot --headless --editor --path test-game --import --quit
+            godot --headless --path test-game --export-pack Linux/X11 "dist/Godot-Loader-Test-$VERSION.pck"
+            test -s "dist/Godot-Loader-Test-$VERSION.pck"
+            python3 - "$VERSION" <<'PY'
+          import sys, pathlib
+          p=pathlib.Path('dist/Godot-Loader-Test-'+sys.argv[1]+'.pck')
+          assert p.read_bytes()[:4] == b'GDPC'
+          print('OSMAN_TEST_PACK_OK',p.name,p.stat().st_size)
+          PY
+          done
+          sha256sum dist/*.pck > dist/SHA256SUMS.txt
+      - name: Run independent v1 and v2 boot smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/osman-test-one /tmp/osman-test-two
+          (cd /tmp/osman-test-one && XDG_DATA_HOME=/tmp/osman-test-one/home godot --headless --main-pack "$GITHUB_WORKSPACE/dist/Godot-Loader-Test-v1.pck" -- --smoke | tee "$GITHUB_WORKSPACE/dist/v1-smoke.log")
+          (cd /tmp/osman-test-two && XDG_DATA_HOME=/tmp/osman-test-two/home godot --headless --main-pack "$GITHUB_WORKSPACE/dist/Godot-Loader-Test-v2.pck" -- --smoke | tee "$GITHUB_WORKSPACE/dist/v2-smoke.log") || true
+          grep -q 'OSMAN_LOADER_TEST_REPORT=' dist/v1-smoke.log
+          grep -q '"migration_from_v1"' dist/v2-smoke.log
+          # v2 MUST fail without migration. Passing unexpectedly would mean a false positive.
+          grep -q '"status":"FAIL"' dist/v2-smoke.log
+          echo OSMAN_DIAGNOSTIC_NEGATIVE_CONTROL_OK
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Godot-Loader-Diagnostic-PCK
+          path: dist/
+          if-no-files-found: error
