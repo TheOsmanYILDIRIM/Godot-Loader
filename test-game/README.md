@@ -1,4 +1,4 @@
-# OSMAN Godot Loader diagnostic PCK
+# Godot Loader diagnostic PCK
 
 Two versions test the same game update workflow **on an actual Android phone**.
 

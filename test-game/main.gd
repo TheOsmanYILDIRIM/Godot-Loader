@@ -19,7 +19,7 @@ func _ready() -> void:
     _build_ui()
     _run_checks()
     if "--smoke" in OS.get_cmdline_user_args():
-        print("OSMAN_LOADER_TEST_REPORT=" + JSON.stringify(report))
+        print("GODOT_LOADER_TEST_REPORT=" + JSON.stringify(report))
         get_tree().quit(0 if _all_passed() else 2)
 
 func _build_ui() -> void:
@@ -82,7 +82,7 @@ func _run_checks() -> void:
     output.text = "RESULT: %d/%d PASS\n\n" % [passed, report["tests"].size()]
     for item in report["tests"]:
         output.text += "%s  %s\n%s\n\n" % [item["status"], item["id"], item["detail"]]
-    print("OSMAN_LOADER_TEST_REPORT=" + JSON.stringify(report))
+    print("GODOT_LOADER_TEST_REPORT=" + JSON.stringify(report))
 
 func _write_report() -> void:
     var f := FileAccess.open(REPORT_FILE, FileAccess.WRITE)

@@ -36,7 +36,7 @@ public final class MainActivity extends Activity {
         panel.setBackgroundColor(Color.rgb(18, 22, 30));
 
         TextView title = new TextView(this);
-        title.setText("OSMAN Godot Loader");
+        title.setText("Godot Loader");
         title.setTextSize(25);
         title.setTextColor(Color.WHITE);
         panel.addView(title);

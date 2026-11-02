@@ -1,8 +1,8 @@
-# 🕹️ OSMAN Godot Loader
+# 🕹️ Godot Loader
 
 **Play Godot games on Android without opening the editor or rebuilding an APK for every game update.**
 
-OSMAN Godot Loader is a reusable Android game launcher, similar in spirit to a LÖVE loader. Install the Loader APK **once**, then import an exported **Godot 4.6 `.pck`** game pack and launch it directly. The player and the game content are distributed separately.
+Godot Loader is a reusable Android game launcher, similar in spirit to a LÖVE loader. Install the Loader APK **once**, then import an exported **Godot 4.6 `.pck`** game pack and launch it directly. The player and the game content are distributed separately.
 
 **Status:** Working prototype / **Android debug APK**, not a Google Play release. [GitHub Actions has successfully built the Loader with Android file-manager integration](https://github.com/TheOsmanYILDIRIM/TAMU-K-K/actions/runs/41416339859). Individual phone models, third-party game packs, and per-game save isolation is not implemented or certified by that CI result.
 
@@ -21,27 +21,27 @@ OSMAN Godot Loader is a reusable Android game launcher, similar in spirit to a L
 
 ## Quick start
 
-1. Visit the [Godot Loader Android workflow](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/workflows/android-loader.yml), open a successful run, and download its **OSMAN-Godot-Loader-Android** artifact.
-2. **Unzip** that artifact and install **OSMAN_Godot_Loader-debug.apk** on an **ARM64 Android 7.0+** phone.
+1. Visit the [Godot Loader Android workflow](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/workflows/android-loader.yml), open a successful run, and download its **Godot-Loader-Android** artifact.
+2. **Unzip** that artifact and install **Godot_Loader-debug.apk** on an **ARM64 Android 7.0+** phone.
 3. Download or export a **Godot 4.6 `.pck`** game file (not an APK, ZIP, or raw project folder).
-4. Tap the PCK in your Android file manager → **Open with → OSMAN Godot Loader**. Alternatively open Loader → **PCK İÇERİ AKTAR**.
+4. Tap the PCK in your Android file manager → **Open with → Godot Loader**. Alternatively open Loader → **PCK İÇERİ AKTAR**.
 5. The app copies the game to private storage. Confirm a file-manager launch and tap **OYUNU AÇ** to play.
 
 ### Türkçe hızlı başlangıç
 
-1. [Başarılı Loader Actions çalışmasından](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/workflows/android-loader.yml) **OSMAN-Godot-Loader-Android** artefaktını indir. ZIP'i açıp **OSMAN_Godot_Loader-debug.apk** dosyasını telefona kur (Android 7+, ARM64).
+1. [Başarılı Loader Actions çalışmasından](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/workflows/android-loader.yml) **Godot-Loader-Android** artefaktını indir. ZIP'i açıp **Godot_Loader-debug.apk** dosyasını telefona kur (Android 7+, ARM64).
 2. Godot 4.6'dan dışa aktarılmış **.pck** oyun paketini indir. GitHub Actions artefaktı ZIP olarak iniyorsa içinden PCK'yi çıkar.
-3. Dosya yöneticisinden **Birlikte aç → OSMAN Godot Loader** seçeneğini kullan. Görünmüyorsa uygulamada **PCK İÇERİ AKTAR** düğmesine bas.
+3. Dosya yöneticisinden **Birlikte aç → Godot Loader** seçeneğini kullan. Görünmüyorsa uygulamada **PCK İÇERİ AKTAR** düğmesine bas.
 4. Güvendiğin bir paket için çalıştırma onayı ver ve **OYUNU AÇ** ile başlat. Editör açılmaz.
 
 ## Download and install
 
 - Open the [Loader's workflow runs](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/workflows/android-loader.yml).
-- Choose a **completed/success** run on the `experiment/godot4-android-apk-20261031` branch. Under **Artifacts**, download **OSMAN-Godot-Loader-Android**. Artifacts are ZIP files, may expire, and GitHub may require sign-in.
-- Unzip it; install the included **OSMAN_Godot_Loader-debug.apk**. Android might ask for permission to install applications from the selected browser/file manager.
-- Launch OSMAN Godot Loader. It does not ship with TAMU or any other game embedded.
+- Choose a **completed/success** run on the `main` branch. Under **Artifacts**, download **Godot-Loader-Android**. Artifacts are ZIP files, may expire, and GitHub may require sign-in.
+- Unzip it; install the included **Godot_Loader-debug.apk**. Android might ask for permission to install applications from the selected browser/file manager.
+- Launch Godot Loader. It does not ship with TAMU or any other game embedded.
 
-**Reference:** [Successful Loader run #41416339859](https://github.com/TheOsmanYILDIRIM/TAMU-K-K/actions/runs/41416339859) includes file-manager VIEW/SEND support. Prefer a newer successful run if available.
+**Reference:** [Successful standalone Loader run #41521018003](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/runs/41521018003) includes Android import, save and APK checks. Prefer a newer successful run if available.
 
 **Do not confuse the downloads:** the **Loader APK** is from [Godot Loader Android](https://github.com/TheOsmanYILDIRIM/Godot-Loader/actions/workflows/android-loader.yml), while the **TAMU game PCK** is generated separately by [Godot PCK and native visual checks](https://github.com/TheOsmanYILDIRIM/TAMU-K-K/actions/workflows/godot4-android-baseline.yml). An Actions artifact ZIP is not itself a game pack.
 
@@ -50,7 +50,7 @@ OSMAN Godot Loader is a reusable Android game launcher, similar in spirit to a L
 ### Method A — file manager
 
 1. Tap a file ending in `.pck`.
-2. Select **Open with / Birlikte aç → OSMAN Godot Loader**. Some file managers offer **Share / Paylaş → OSMAN Godot Loader** instead.
+2. Select **Open with / Birlikte aç → Godot Loader**. Some file managers offer **Share / Paylaş → Godot Loader** instead.
 3. Let the app copy the selected PCK. When opened from a file manager, it offers **OYUNU AÇ** (launch) or **SADECE İÇERİ AKTAR** (import only).
 4. Select launch only for games you trust.
 
@@ -58,7 +58,7 @@ OSMAN Godot Loader is a reusable Android game launcher, similar in spirit to a L
 
 ### Method B — Loader's file picker
 
-1. Open **OSMAN Godot Loader**.
+1. Open **Godot Loader**.
 2. Tap **PCK İÇERİ AKTAR** and select the `.pck` through Android's system file picker.
 3. When import finishes, tap **OYUNU AÇ**.
 
@@ -175,7 +175,7 @@ The workflow:
 3. Builds the Godot ARM64 debug native library with **`platform=android target=template_debug arch=arm64 optimize=speed disable_path_overrides=no`**.
 4. Builds **`godot-lib.template_debug.aar`** and copies it to `android/app/libs/`.
 5. Builds `app-debug.apk` using the upstream Godot Gradle wrapper, runs `:app:testDebugUnitTest`, checks native `libgodot_android.so`, APK archive integrity, and manifest VIEW/SEND filters.
-6. Publishes **OSMAN_Godot_Loader-debug.apk** as an Actions artifact if all steps succeed.
+6. Publishes **Godot_Loader-debug.apk** as an Actions artifact if all steps succeed.
 
 Local builds need a matching toolchain: **JDK 17, Android SDK 35, NDK 28.1.13356709, SCons, upstream Godot 4.6 source and Gradle**. The Loader's Gradle project expects a prebuilt custom AAR. Just opening `android/` without supplying it is not a complete build setup. Consult the workflow for commands; no local build claim is made here.
 
